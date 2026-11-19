@@ -38,6 +38,38 @@ The production server defaults to port 3000. `PORT`, `HOST`, and `DEMO_DATA_DIR`
 | `/portal/inbox` | Workspace notifications and payment alerts |
 | `/portal/spending` | Category totals derived from transactions |
 
+## Public pages and links
+
+Every public page in the preview is the captured markup of the real page, including its own photography, stylesheets and disclosures. `src/public-catalog.json` holds the pages; `src/public/link-index.json` holds the destination for every public page the capture references but does not contain.
+
+A link always resolves to something real:
+
+| Destination | Behaviour |
+| --- | --- |
+| Page in the capture | Opens from the saved copy, with its in-page anchors |
+| Page not in the capture, but an equivalent page is | Opens the equivalent captured page |
+| Page in a section the capture documents | Opens that section; the page lists every such destination under "More in this section" with its real `wellsfargo.com` URL |
+| Page with no captured section at all | Opens its real public URL |
+| PDFs, other documents, and third-party sites | Names the document and its host, then opens the original in a new tab |
+| Secure sign-on, appointments, branch locator | Explains that the service lives on the official site and links to it |
+
+Controls the source markup left to Wells Fargo's own JavaScript also work: footnote references (numbered, symbolic and `data-footnote-id` disclosures), FAQ accordions, legacy `#Expand` accordions, balloon-help definitions, the share pop-up, print, feedback, the contact bar and the rate/image carousels.
+
+### Re-captured pages
+
+Eleven product pages were originally captured from `creditcards.wellsfargo.com`, which answers "Offer unavailable" for paths that `www.wellsfargo.com` publishes (card features, account documents, card terms). Those pages are now captured from the correct host:
+
+- `server/public-pages.mjs` sends `/credit-cards/features`, `/documents`, `/agreements`, `/terms` and `*/terms` to `www.wellsfargo.com`, and keeps the marketing pages on the campaign host.
+- `sources/*.json` holds the re-captured page text with its real source URL. `node scripts/capture-sources.mjs` lists which routes still need it; `node scripts/capture-sources.mjs <route> <page.md>` records one; `node scripts/apply-sources.mjs` merges them into the catalog. Both run as part of `catalog:links` and `catalog:build`.
+
+Each page keeps the wording of the original, and the long legal agreements link to the complete document on wellsfargo.com rather than storing a partial copy under the page's name.
+
+`npm run catalog:links` rebuilds the index, the section lists and the offline search index after a new capture. `npm run test:links` fails if any link in the capture, any `href="#"` control, any image, any internal app link, any page without a main landmark and an `<h1>`, or any page that shows an error banner instead of its content has no working destination.
+
+## Search
+
+With the demo server running, `/search` uses the live public search. Without it (a static build, or a server with no outbound network), `/search` searches the saved pages through `src/public/search-index.json`, with category filters and no empty results page.
+
 ## Persistence
 
 `server/api.mjs` creates isolated demo ledgers. An opaque, random workspace identifier is held in an HTTP-only cookie, with a session-scoped identifier for embedded previews that block cookies. Data is saved atomically under `~/.local/share/banking-preview/ledgers-v2` unless `DEMO_DATA_DIR` is set. This is designed for a single Node process, not production financial transactions.
@@ -47,7 +79,7 @@ Amounts are integer cents. Server-side validation enforces eligible accounts, su
 ## Verification
 
 ```sh
-node --test tests/*.test.mjs
+npm test                 # ledger/API tests plus the link and media audit
 npx tsc --noEmit
 npm run build
 ```

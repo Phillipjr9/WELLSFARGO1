@@ -10,6 +10,11 @@ const PUBLIC_HOSTS = new Set([
   "stories.wf.com",
   "www.wellsfargojobs.com",
   "sites.wf.com",
+  "www.wellsfargoadvisors.com",
+  "smallbusinessresources.wf.com",
+  "homeloans.wellsfargo.com",
+  "locations.wellsfargo.com",
+  "locations.wellsfargoadvisors.com",
 ]);
 const SECURE_HOSTS = [
   "secure.wellsfargo.com",
@@ -46,9 +51,29 @@ export function sourceForPath(path) {
     "/login/": "https://connect.secure.wellsfargo.com/auth/login/present?origin=cob&LOB=CONS",
     "/jobs/": "https://www.wellsfargojobs.com/",
     "/espanol/": "https://www.wellsfargo.com/es/",
+    // Redirect-style paths the public markup still links to.
+    "/military/": "https://www.wellsfargo.com/military/",
+    "/impact/": "https://www.wellsfargo.com/about/responsibility-and-impact/",
+    "/spanish/": "https://www.wellsfargo.com/es/",
+    "/statements/": "https://www.wellsfargo.com/online-banking/statements/",
+    "/debitlimits/": "https://www.wellsfargo.com/debit-card/",
+    "/directdepositform/": "https://www.wellsfargo.com/help/direct-deposit/",
+    "/replacemycard/": "https://www.wellsfargo.com/debit-card/",
+    "/ficoscore/": "https://www.wellsfargo.com/goals-credit/smarter-credit/credit-101/fico/",
+    "/exit/social/": "https://www.wellsfargo.com/",
   };
   if (aliases[clean]) return aliases[clean];
-  if (clean.startsWith("/credit-cards/")) return `https://creditcards.wellsfargo.com${clean.slice(13) || "/"}`;
+  // Only the product marketing pages live on the campaign host. Account
+  // documents, card terms, feature guides and agreements are published on
+  // www.wellsfargo.com, and the campaign host answers "Offer unavailable" for
+  // them (the source of the eleven empty captures).
+  if (clean.startsWith("/credit-cards/")) {
+    const sub = clean.slice("/credit-cards/".length);
+    const segment = sub.split("/")[0];
+    const documents = ["features", "documents", "agreements", "terms"].includes(segment) || sub.endsWith("terms/");
+    if (documents) return "https://www.wellsfargo.com" + clean;
+    return "https://creditcards.wellsfargo.com/" + sub;
+  }
   if (clean.startsWith("/guidance/")) return `https://getmoneyready.wf.com${clean.slice(9) || "/"}`;
   if (clean.startsWith("/stories/")) return `https://stories.wf.com${clean.slice(8) || "/"}`;
   return `https://www.wellsfargo.com${clean}`;
@@ -119,6 +144,28 @@ export function extractPublicPage(html, requestedUrl, finalUrl = requestedUrl) {
     });
     $(el).attr("srcset", candidates.join(", "));
   });
+  // "Share this page" links go through a redirector which no longer resolves;
+  // the destination is in the same element's lightbox data.
+  $("a[data-lightbox-options]").each((_, el) => {
+    const options = $(el).attr("data-lightbox-options") || "";
+    const destination = /"exitPageDestination"\s*:\s*"([^"]+)"/.exec(options.replace(/&quot;/g, '"'));
+    if (destination && /^\/exit\/social/.test($(el).attr("href") || "")) {
+      $(el).attr("href", destination[1].replace(/&amp;/g, "&"));
+      $(el).attr("target", "_blank");
+      $(el).attr("rel", "noreferrer");
+    }
+  });
+  // The PDF viewer path is a redirect to the real document.
+  $("a[href^='/fetch-pdf'], a[href*='wellsfargo.com/fetch-pdf']").each((_, el) => {
+    const raw = $(el).attr("href") || "";
+    try {
+      const url = new URL(raw, finalUrl);
+      const form = url.searchParams.get("formNumber") || url.searchParams.get("form");
+      if (form) {
+        $(el).attr("href", `https://www.wellsfargo.com/assets/pdf/personal/help/${form}.pdf`);
+      }
+    } catch {}
+  });
   $("a[href]").each((_, el) => {
     const raw = $(el).attr("href") || "";
     if (raw.startsWith("#") || raw.startsWith("mailto:") || raw.startsWith("tel:") || raw.startsWith("javascript:")) {
@@ -166,6 +213,15 @@ const cacheDirectory = process.env.PUBLIC_CACHE_DIR || join(homedir(), ".cache",
 mkdirSync(cacheDirectory, { recursive: true });
 const inflight = new Map();
 
+function readIndexedPage(path) {
+  const file = join(process.cwd(), "src", "public", "link-index.json");
+  try {
+    return JSON.parse(readFileSync(file, "utf8"))[path];
+  } catch {
+    return undefined;
+  }
+}
+
 async function getRenderedPublicPage(target) {
   const { chromium } = await import("playwright");
   const browser = await chromium.launch();
@@ -183,8 +239,92 @@ async function getRenderedPublicPage(target) {
   } finally { await browser.close(); }
 }
 
+function cleanPath(path) {
+  return `/${String(path || "").replace(/^\/+|\/+$/g, "")}`.replace(/^\/$/, "/") || "/";
+}
+
+/**
+ * Answers from the saved catalog (src/public-catalog.json) for routes a static
+ * build already holds, so the demo preview needs no network. Only pages the
+ * capture does not have are fetched live.
+ */
+const catalogFile = join(process.cwd(), "src", "public-catalog.json");
+let catalogCache;
+function savedCatalog() {
+  if (catalogCache !== undefined) return catalogCache;
+  try {
+    catalogCache = JSON.parse(readFileSync(catalogFile, "utf8"));
+  } catch {
+    catalogCache = null;
+  }
+  return catalogCache;
+}
+
+function cleanRoute(route) {
+  return `/${String(route || "").split("#")[0].split("?")[0].replace(/^\/+|\/+$/g, "")}`.replace(/^\/$/, "/") || "/";
+}
+
+async function capturedPage(path, searchQuery) {
+  if (path === "/search") return null; // live search stays live
+  const catalog = savedCatalog();
+  if (!catalog) return null;
+  const localRoute = (route) => {
+    // creditcards/getmoneyready/stories pages are stored under a prefix.
+    if (catalog[route]) return route;
+    return catalog[`/credit-cards${route}`] ? `/credit-cards${route}` : null;
+  };
+  if (catalog[path]) return { ...catalog[path], cached: true };
+  let index = {};
+  try {
+    index = JSON.parse(readFileSync(join(process.cwd(), "src", "public", "link-index.json"), "utf8"));
+  } catch {}
+  const parts = path.split("/").filter(Boolean);
+  const variants = [
+    parts.length > 1 && parts[0] === parts[1] ? `/${parts.slice(1).join("/")}` : null,
+    parts.includes("es") ? `/${parts.filter((part, i) => part !== "es" || i === 0).join("/")}` : null,
+    parts.at(-1) === "index" ? `/${parts.slice(0, -1).join("/")}` : null,
+  ].filter(Boolean);
+  for (const variant of variants) {
+    const hit = localRoute(variant);
+    if (hit) return { ...catalog[hit], requested: path, cached: true };
+  }
+  // Locale / duplicate-prefix variants of the requested route.
+  const variantRoute = (route) => {
+    const parts = route.split("/").filter(Boolean);
+    if (parts.length > 1 && parts[0] === parts[parts.length - 1]) return null;
+    for (const variant of [
+      parts.length > 1 && parts[0] === parts[1] ? `/${parts.slice(1).join("/")}` : null,
+      parts.includes("es") ? `/${parts.filter((part, i) => part !== "es" || i === 0).join("/")}` : null,
+      parts.at(-1) === "index" ? `/${parts.slice(0, -1).join("/")}` : null,
+    ]) {
+      if (variant && index[variant]) return index[variant].route || null;
+    }
+    return null;
+  };
+  const mapped = index[path]?.route
+    || index[`/credit-cards${path}`]?.route
+    || variantRoute(path)
+    || variantRoute(`/credit-cards${path}`);
+  const mappedHit = mapped ? localRoute(mapped) : null;
+  if (mappedHit) return { ...catalog[mappedHit], requested: path, cached: true };
+  // Un-captured pages answer with the nearest page that documents the same
+  // section, so a stale or deep link never lands on an error.
+  let parent = path;
+  while (parent.split("/").filter(Boolean).length > 1) {
+    parent = parent.split("/").slice(0, -1).join("/") || "/";
+    const hit = localRoute(parent);
+    if (hit) return { ...catalog[hit], requested: path, cached: true };
+  }
+  void searchQuery;
+  return null;
+}
+
 export async function getPublicPage(path, searchQuery = "") {
+  // A page the capture does not hold is answered by the nearest page that
+  // documents the same section, so no link ever lands on an error.
   const requested = sourceForPath(path);
+  const local = await capturedPage(cleanPath(path), searchQuery);
+  if (local) return local;
   const target = new URL(requested);
   if (target.pathname === "/search/" && searchQuery) target.searchParams.set("q", searchQuery.slice(0, 200));
   if (isSecureDestination(requested) || !PUBLIC_HOSTS.has(target.hostname)) {

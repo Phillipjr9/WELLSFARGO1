@@ -8,3 +8,68 @@
 .public-page-cache-note { padding: 12px 24px; background: #f9f7f6; color: #756b63; font-size: 13px; text-align: center; }
 .public-page-cache-note a { color: #5a469b; text-decoration: underline; }
 @media (max-width: 540px) { .public-page-loading, .public-page-error { margin: 28px auto; } }
+
+/* Section index appended to pages that act as the parent for destinations the
+   capture does not contain. */
+/* Title heading for captures whose content started at an <h2>. */
+.wf-page-title {
+  margin: 0 auto;
+  padding: 40px 24px 0;
+  max-width: 1240px;
+  font-size: 40px;
+  font-weight: 300;
+  line-height: 1.15;
+  color: #141414;
+}
+@media (max-width: 700px) { .wf-page-title { padding: 28px 20px 0; font-size: 30px; } }
+
+.wf-section-index {
+  max-width: 1200px;
+  margin: 56px auto 72px;
+  padding: 32px clamp(20px, 5vw, 48px) 40px;
+  border-top: 1px solid #d6d6d6;
+  font-family: "Wells Fargo Sans", Arial, sans-serif;
+  color: #141414;
+}
+.wf-section-index-title { margin: 0 0 8px; font-size: 24px; font-weight: 400; }
+.wf-section-index-intro { margin: 0 0 20px; color: #787070; font-size: 15px; max-width: 70ch; }
+.wf-section-index-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px 32px; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); }
+.wf-section-index-list a { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px; padding: 9px 0; color: #141414; text-decoration: none; border-bottom: 1px solid #ece8e5; font-size: 15px; }
+.wf-section-index-list a:hover, .wf-section-index-list a:focus-visible { color: #d71e28; text-decoration: underline; }
+.wf-section-index-list li { border-radius: 6px; }
+.wf-section-index-list li.is-highlighted { background: #fdf3e6; box-shadow: 0 0 0 10px #fdf3e6; animation: wf-ref-pulse 2.6s ease-out; }
+@keyframes wf-ref-pulse { 0% { background: #fbe0b0; } 100% { background: #fdf3e6; } }
+.wf-section-link-note { color: #787070; font-size: 12px; letter-spacing: 0.02em; text-transform: uppercase; }
+.wf-section-link-note { color: #9a918b; font-size: 12px; }
+@media (max-width: 600px) { .wf-section-index { margin: 32px auto 40px; padding: 24px 20px 32px; } }
+
+/* Search over the saved public pages (static deployments, or a demo server
+   without outbound network access). */
+.wf-search { background: #fff; color: #141414; padding: 40px 20px 80px; font-family: "Wells Fargo Sans", Arial, sans-serif; }
+.wf-search-inner { max-width: 1180px; margin: 0 auto; }
+.wf-search h1 { font-size: clamp(26px, 3vw, 40px); font-weight: 400; margin: 0 0 8px; }
+.wf-search-count { color: #787070; font-size: 15px; margin: 0 0 28px; }
+.wf-search-layout { display: grid; grid-template-columns: 260px minmax(0, 1fr); gap: 48px; }
+.wf-search-filters { border-right: 1px solid #e6e1de; padding-right: 24px; }
+.wf-search-filters ul { list-style: none; margin: 16px 0 0; padding: 0; display: grid; gap: 4px; max-height: 70vh; overflow: auto; }
+.wf-search-filters button { display: flex; align-items: center; gap: 10px; width: 100%; padding: 7px 4px; border: 0; background: none; font: inherit; font-size: 15px; text-align: left; color: #141414; cursor: pointer; }
+.wf-search-filters button:hover { color: #d71e28; }
+.wf-search-box { width: 18px; height: 18px; border: 1px solid #787070; border-radius: 3px; flex: none; position: relative; }
+.wf-search-box.is-checked { background: #d71e28; border-color: #d71e28; }
+.wf-search-box.is-checked::after { content: ""; position: absolute; left: 5px; top: 1px; width: 5px; height: 11px; border: solid #fff; border-width: 0 2px 2px 0; transform: rotate(45deg); }
+.wf-search-filter-toggle { display: none; }
+.wf-search-result { border-bottom: 1px solid #e6e1de; padding: 0 0 22px; margin-bottom: 22px; }
+.wf-search-result-section { margin: 0 0 6px; font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: #9a918b; }
+.wf-search-result h2 { margin: 0 0 8px; font-size: 21px; font-weight: 400; }
+.wf-search-result h2 a { color: #5a469b; text-decoration: none; }
+.wf-search-result h2 a:hover, .wf-search-result h2 a:focus-visible { text-decoration: underline; }
+.wf-search-result p { margin: 0 0 6px; color: #3b3331; font-size: 15px; line-height: 1.5; }
+.wf-search-result-path { color: #9a918b; font-size: 13px; }
+.wf-search-empty { color: #787070; }
+@media (max-width: 860px) {
+  .wf-search-layout { grid-template-columns: minmax(0, 1fr); gap: 20px; }
+  .wf-search-filters { border-right: 0; border-bottom: 1px solid #e6e1de; padding: 0 0 16px; }
+  .wf-search-filter-toggle { display: block; width: 100%; padding: 12px 4px; border: 1px solid #d6d6d6; background: #f9f7f6; font: inherit; font-size: 15px; text-align: left; }
+  .wf-search-filters ul { display: none; max-height: none; }
+  .wf-search-filters ul.is-open { display: grid; }
+}

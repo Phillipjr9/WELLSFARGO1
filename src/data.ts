@@ -174,11 +174,11 @@ export const MENU_CATEGORIES: MenuCategory[] = [
       {
         title: "Credit cards",
         links: [
-          { label: "Cash back credit cards", href: "/credit-cards/cash-back-credit-cards/" },
-          { label: "Rewards credit cards", href: "/credit-cards/rewards-credit-cards/" },
-          { label: "0% intro APR credit cards", href: "/credit-cards/0-percent-intro-apr-credit-cards/" },
-          { label: "Travel credit cards", href: "/credit-cards/travel-credit-cards/" },
-          { label: "Balance transfer credit cards", href: "/credit-cards/balance-transfer-credit-cards/" },
+          { label: "Cash back credit cards", href: "/credit-cards/active-cash-credit-card/" },
+          { label: "Rewards credit cards", href: "/credit-cards/rewards-card/" },
+          { label: "0% intro APR credit cards", href: "/credit-cards/" },
+          { label: "Travel credit cards", href: "/credit-cards/autograph-journey-visa-credit-card/" },
+          { label: "Balance transfer credit cards", href: "/credit-cards/features/balance-transfer/" },
           { label: "Business credit card", href: "/credit-cards/business-credit-cards/" },
         ],
       },
@@ -279,7 +279,7 @@ export const MENU_CATEGORIES: MenuCategory[] = [
       {
         title: "Personal loan services",
         links: [
-          { label: "How to apply for a loan", href: "/help/loans/personal-loan-faqs/#howdoiapplyforaloan" },
+          { label: "How to apply for a loan", href: "/help/loans/personal-loan-faqs/#applicationinformation" },
           { label: "How to make a payment", href: "/help/loans/personal-loan-faqs/#paymentsandfees" },
         ],
       },
@@ -391,7 +391,7 @@ export const MENU_CATEGORIES: MenuCategory[] = [
         links: [
           {
             label: "Guided coaching",
-            href: "/guidance/guided-financial-coaching/",
+            href: "/guidance/guided-coaching/",
             desc: "Get practical guidance based on your priorities",
           },
           {
@@ -424,7 +424,7 @@ export const MENU_LINKS: MenuLink[] = [
 
 export const HELP_FAQS = [
   { label: "How do I find my routing and account numbers?", href: "/help/routing-number/" },
-  { label: "Is there a fee for Zelle®?", href: "/help/online-banking/zelle-faqs/#isthereafeeforzelle" },
+  { label: "Is there a fee for Zelle®?", href: "/help/online-banking/zelle-faqs/" },
   { label: "How do I report suspected fraud?", href: "/privacy-security/fraud/report/" },
 ];
 
