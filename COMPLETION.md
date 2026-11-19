@@ -38,11 +38,12 @@ shape as every other route:
   credential field survives the capture. A test enforces this.
 - The page keeps its own sections (the checking marquee, product directory,
   promo tiles, rate panel, Fargo panel, community cards, contact bar), its real
-  photography and its real links. `src/public/home-styles.css` carries the page
-  styles: the source stylesheet is listed on record but wellsfargo.com cannot be
-  downloaded over plain HTTP from this environment, so its rules are written out
-  by hand in that file. Replacing it with the source file verbatim is a drop-in
-  change.
+  photography, its real links, and its own stylesheet: the capture loads
+  `https://www.wellsfargo.com/ui/css/homepage-ui/ps-homepage…css` from
+  `src/public/source-styles.ts`, which `build-catalog` fetched from the live page.
+  The sign-on hand-off keeps the source's `signon-container` / `sign-top` /
+  `form-button` structure so the page's stylesheet positions the card over the
+  hero exactly as on wellsfargo.com.
 
 ### Pages that showed the wrong thing
 

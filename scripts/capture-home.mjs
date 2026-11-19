@@ -59,13 +59,19 @@ if (signonStart >= 0) {
     console.error("Could not find the end of the sign-on block.");
     process.exit(1);
   }
+  // Keep the source's own signon / sign-top / signon-bottom structure and
+  // classes so the page's stylesheet positions the card, and put the hand-off
+  // where the source put its Sign On button inside .form-button.
   body = body.slice(0, signonStart) + [
     '<div class="signon-container">',
     '<div class="sign-top">',
     "<h2>Welcome</h2>",
     "<span>Sign on to manage your accounts.</span>",
-    '<div class="public-secure-action">',
-    '<a href="https://connect.secure.wellsfargo.com/auth/login/present?origin=cob&amp;LOB=CONS" target="_blank" rel="noreferrer">Sign on at Wells Fargo</a>',
+    '<div class="form-field">',
+    '<a class="ps-btn-primary" href="https://connect.secure.wellsfargo.com/auth/login/present?origin=cob&amp;LOB=CONS" target="_blank" rel="noreferrer">Sign On</a>',
+    "</div>",
+    '<div class="form-button">',
+    '<a class="enroll" href="https://oam.wellsfargo.com/oamo/identity/authentication?execution=e1s1/" target="_blank" rel="noreferrer">Enroll</a>',
     "</div>",
     "</div>",
     '<div class="signon-bottom">',
@@ -95,17 +101,15 @@ body = body
   .replace(/<img\b[^>]*\ssrc="[^"]*\/s\.gif[^"]*"[^>]*>/gi, "")
   .replace(/<\/(input|img|br|hr)>/gi, "");
 
-// The page's stylesheet is stored in the repository (src/public/home-styles.css)
-// because wellsfargo.com is not reachable over plain HTTP from the build
-// environment; the build packs it as `local://home-styles.css`. The source URL
-// stays on record so the file can be replaced with the real one verbatim.
+// The page's real stylesheet. It is already stored in src/public/source-styles.ts
+// (fetched from the live page by scripts/fetch-source-styles.mjs) and is packed
+// into style-data.ts, so the capture loads the page's own CSS.
 const record = {
   route: "/home",
   source: SOURCE,
   title,
   capturedAt: new Date().toISOString().slice(0, 10),
-  styles: ["local://home-styles.css"],
-  sourceStyles: styles,
+  styles,
   html: body,
 };
 

@@ -57,7 +57,7 @@ Controls the source markup left to Wells Fargo's own JavaScript also work: footn
 
 ### The homepage
 
-`/` and `/home` render the capture of `https://www.wellsfargo.com/` from `sources/home.json`. `sources/raw/home.html` is the page as published and `node scripts/capture-home.mjs` rebuilds the record from it. The source's sign-on form is replaced by the preview's hand-off panel, so the page never asks for a password; everything else — sections, photography, links — is the page itself. Its styles live in `src/public/home-styles.css`.
+`/` and `/home` render the capture of `https://www.wellsfargo.com/` from `sources/home.json`. `sources/raw/home.html` is the page as published and `node scripts/capture-home.mjs` rebuilds the record from it. The page keeps its own markup, classes and stylesheet (`ps-homepage…css`, stored in `src/public/source-styles.ts` and packed into the build), so it lays out the way the source page does. The source's sign-on form is replaced by a hand-off card that keeps the source's `signon-container` / `sign-top` / `signon-bottom` / `form-button` structure, so the card is positioned by the page's own CSS; the page never asks for a password.
 
 ### Re-captured pages
 

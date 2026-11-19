@@ -17,9 +17,10 @@ writeFileSync(
 
 const stylesText = readFileSync("src/public/source-styles.ts", "utf8");
 const styles = JSON.parse(stylesText.slice(stylesText.indexOf("= {") + 2, stylesText.trimEnd().length - 1));
-// Local stylesheets written into the repo (the homepage's, for instance) travel
-// with the build instead of being fetched from wellsfargo.com at view time.
-const LOCAL_STYLES = ["src/public/home-styles.css"];
+// Stylesheets written into the repo travel with the build instead of being
+// fetched from wellsfargo.com at view time. Add files here when a page's CSS is
+// not available in src/public/source-styles.ts.
+const LOCAL_STYLES = [];
 for (const file of LOCAL_STYLES) {
   const url = `local://${file.split("/").pop()}`;
   styles[url] = readFileSync(file, "utf8");

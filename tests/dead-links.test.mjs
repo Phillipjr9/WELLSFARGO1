@@ -330,3 +330,27 @@ test("the homepage renders from the capture and keeps its real images", () => {
   const app = readFileSync("src/App.tsx", "utf8");
   assert.match(app, /hasCapturedPage\("\/home"\)/, "the router must serve the captured homepage");
 });
+
+test("the homepage loads the source stylesheet, not a look-alike", () => {
+  const page = catalog["/home"];
+  // The page's own CSS must be on the capture, and it must be the real sheet
+  // that ships in src/public/source-styles.ts (packed into the build).
+  assert.ok(page.styles.length > 0, "the homepage must reference its stylesheet");
+  for (const url of page.styles) {
+    assert.match(url, /^https:\/\/www\.wellsfargo\.com\/ui\/css\//, `homepage stylesheet must be a source sheet: ${url}`);
+    assert.ok(!url.startsWith("local://"), `homepage must not fall back to a hand-written sheet: ${url}`);
+  }
+  const stylesFile = readFileSync("src/public/source-styles.ts", "utf8");
+  const sheets = JSON.parse(
+    stylesFile.slice(stylesFile.indexOf("= {") + 2, stylesFile.trimEnd().length - 1),
+  );
+  for (const url of page.styles) {
+    assert.ok(sheets[url], `${url} must be stored, or the page renders unstyled`);
+    assert.ok(sheets[url].length > 10000, `${url} looks truncated (${sheets[url]?.length} bytes)`);
+  }
+  // The sign-on hand-off keeps the source structure the sheet positions.
+  for (const className of ["signon-container", "sign-top", "form-button", "signon-bottom"]) {
+    assert.ok(page.html.includes(`class="${className}"`) || page.html.includes(` ${className}"`),
+      `homepage must keep the source class ${className}`);
+  }
+});
