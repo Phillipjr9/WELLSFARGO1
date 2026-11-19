@@ -362,6 +362,12 @@ test("the homepage loads the source stylesheet, not a look-alike", () => {
     assert.ok(sheets[url], `${url} must be stored, or the page renders unstyled`);
     assert.ok(sheets[url].length > 10000, `${url} looks truncated (${sheets[url]?.length} bytes)`);
   }
+  // The renderer keeps the card visible below 1080px, where the source sheet
+  // hides it, and paints its Sign On red rather than as a native white button.
+  const renderer = readFileSync("src/public/PublicPage.tsx", "utf8");
+  assert.match(renderer, /data-wf-compat/, "the renderer must apply a compatibility layer after the source sheet");
+  assert.match(renderer, /@media screen and \(max-width:1079px\)\{[\s\S]{0,200}\.signon-container\{display:block!important/, "the sign-on card must stay visible in narrow windows");
+  assert.match(renderer, /\.signon-container \.ps-btn-primary\{-webkit-appearance:none/, "Sign On must not render as a native white button");
   // The sign-on hand-off keeps the source structure the sheet positions.
   for (const className of ["signon-container", "sign-top", "form-button", "signon-bottom"]) {
     assert.ok(page.html.includes(`class="${className}"`) || page.html.includes(` ${className}"`),

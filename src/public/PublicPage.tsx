@@ -707,6 +707,7 @@ export default function PublicPage({ onLeave }: { onLeave: (url: string) => void
           const extra = document.createElement("style");
           extra.textContent = css;
           root.appendChild(extra);
+          keepCompatLast();
         }).catch(() => {});
         continue;
       }
@@ -715,6 +716,33 @@ export default function PublicPage({ onLeave }: { onLeave: (url: string) => void
       link.href = url;
       root.appendChild(link);
     }
+    // A small compatibility layer, applied after the page's own stylesheet and
+    // kept last when that sheet finishes loading. It only restates what the
+    // source sheet already says, plus one gap: the source hides its sign-on card
+    // below 1080px because its own scripts swap in a different mobile flow, and
+    // this preview has no scripts, so without this the card -- the login -- is
+    // simply not drawn in a narrow window.
+    const compat = document.createElement("style");
+    compat.setAttribute("data-wf-compat", "");
+    compat.textContent = `
+      .signon-container{background:#fff;border-radius:10px;color:#141414;}
+      .signon-container h2{color:#141414;}
+      .signon-container .sign-top{background-color:#fff;}
+      .signon-container .signon-bottom{background-color:#f4f0ed;}
+      .signon-container .form-field input{color:#141414;background-color:#fff;}
+      /* A native submit button ignores background-color in engines that keep
+         -webkit-appearance:button, which paints it white. The source's Sign On is
+         a solid red pill, so drop the native appearance. */
+      .signon-container .ps-btn-primary{-webkit-appearance:none;appearance:none;background-color:#d71e28;color:#fff;text-decoration:none;}
+      @media screen and (max-width:1079px){
+        .signon-container{display:block!important;position:static;width:auto;height:auto;margin:16px;box-sizing:border-box;}
+        .signon-container .form-field,.signon-container .form-field input{display:block;width:100%;}
+        .signon-container .sign-top,.signon-container .signon-bottom{padding:16px;}
+      }
+    `;
+    root.appendChild(compat);
+    const keepCompatLast = () => root.appendChild(compat);
+
     const wrapper = document.createElement("div");
     wrapper.className = "public-source-page ps-body-container";
     // Source pages that came from wellsfargojobs.com draw their inline icons

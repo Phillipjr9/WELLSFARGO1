@@ -42,6 +42,12 @@ shape as every other route:
   the bank's own sign-in page, and writes a note into the card saying it is an
   offline copy. Nothing typed is sent or stored. A test compares the captured
   card with the source markup byte for byte, and checks the renderer's wiring.
+- One gap is closed in a small compatibility layer applied after the page's own
+  stylesheet: the source hides its sign-on card below 1080px because its scripts
+  swap in a different mobile flow, and this preview runs no page scripts — so in a
+  narrow window the login was simply not drawn. The layer keeps the card visible
+  there (stacked, full width) and stops the browser painting the Sign On submit as
+  a native white button. It restates the source's own values otherwise.
 - The page keeps its own sections (the checking marquee, product directory,
   promo tiles, rate panel, Fargo panel, community cards, contact bar), its real
   photography, its real links, and its own stylesheet: the capture loads
