@@ -48,59 +48,17 @@ if (!main) {
 }
 let body = main[0];
 
-// The source's sign-on form posts credentials to the bank. Replace the whole
-// container (located by index, not by a nested-tag regex, which would swallow
-// the next section) with the same hand-off the rest of the preview uses, so the
-// preview never asks for a password.
-const signonStart = body.indexOf('<div class="signon-container"');
-if (signonStart >= 0) {
-  const signonEnd = body.indexOf('<div class="marquee-container"', signonStart);
-  if (signonEnd < 0) {
-    console.error("Could not find the end of the sign-on block.");
-    process.exit(1);
-  }
-  // The source card is a real username/password login. The preview reproduces
-  // the card exactly -- same classes, labels, Show toggle, Save username, Enroll,
-  // passkey and help links -- but nothing is collected: the fields are read-only,
-  // there is no <form>, the Sign On action goes to the bank's own sign-in page,
-  // and a note under the card says so. Nothing typed here is sent or stored.
-  const officialSignOn =
-    "https://connect.secure.wellsfargo.com/auth/login/present?origin=cob&amp;LOB=CONS";
-  body = body.slice(0, signonStart) + [
-    '<div class="signon-container">',
-    '<div class="sign-top">',
-    '<h2 id="sign-on-header">Welcome</h2>',
-    "<span>Sign on to manage your accounts.</span>",
-    '<div class="form-field">',
-    '<input type="text" id="userid" class="form-element formElementText login_field signon-in" readonly aria-describedby="signon-note" autocomplete="off">',
-    '<label for="userid" id="userid_label" class="id_label">Username</label>',
-    "</div>",
-    '<div class="form-field mr-tp-10 password-div">',
-    '<input type="password" id="password" class="form-element formElementPassword login_field signon-in pmask" readonly aria-describedby="signon-note" autocomplete="off">',
-    '<label for="password" id="password_label" class="id_label">Password</label>',
-    '<span class="show-password password-visible-icon">Show</span>',
-    "</div>",
-    '<div id="saveuid" class="save-username save-us-mb">',
-    '<input type="checkbox" id="saveusername" class="c29link" disabled aria-describedby="signon-note">',
-    '<label for="saveusername" class="lsc saveuser-pd">Save username</label>',
-    "</div>",
-    '<div class="form-button">',
-    `<a class="ps-btn-primary" href="${officialSignOn}" target="_blank" rel="noreferrer">Sign On</a>`,
-    '<a class="enroll" href="https://oam.wellsfargo.com/oamo/identity/authentication?execution=e1s1/" target="_blank" rel="noreferrer">Enroll</a>',
-    "</div>",
-    '<p id="signon-note" style="font-size:12px;line-height:1.35;margin:10px 16px 0;color:#787070;">',
-    "Offline copy of wellsfargo.com. Nothing you type here is sent or stored &mdash; ",
-    `<a href="${officialSignOn}" target="_blank" rel="noreferrer">sign on at the official site</a>.`,
-    "</p>",
-    "</div>",
-    '<div class="signon-bottom">',
-    '<a href="https://connect.secure.wellsfargo.com/auth/login/present?passkey=Y" target="_blank" rel="noreferrer">Sign on with a passkey</a>',
-    '<a href="https://oam.wellsfargo.com/oamo/identity/help/passwordhelp/" target="_blank" rel="noreferrer">Forgot username or password?</a>',
-    '<a href="/privacy-security/fraud/">Security Center</a>',
-    "</div>",
-    "</div>\n\t\t\t\t",
-  ].join("") + body.slice(signonEnd);
-}
+// The sign-on card is captured exactly as the source has it -- same elements,
+// same classes, same headings, same labels, the Show toggle, the Save username
+// option, the hidden fields, the Sign On submit, the tooltip. The page's own
+// stylesheet positions it over the hero and no substitute lays out the same, so
+// substituting anything made the card look wrong.
+//
+// It is a real login form, though, and this is a copy of the page, not the
+// bank: the markup is made inert at render time by @/public/PublicPage.tsx
+// (wireSignon), which writes a note into the card, opens Sign On at the bank's
+// own sign-in page, and blocks submission. Nothing typed here is sent or stored.
+// Nothing about the card is edited below.
 
 // Lazy images the source swaps in by script keep their real source.
 body = body

@@ -33,12 +33,15 @@ shape as every other route:
   `node scripts/capture-home.mjs` rebuilds it.
 - `/` and `/home` both render the capture (the server maps the two, the router
   prefers the capture and falls back to the React page only if it is missing).
-- The source's sign-on card is reproduced in full — the Username and Password
-  fields, the Show toggle, Save username, Sign On, Enroll, the passkey and help
-  links — because it is a large, load-bearing part of the page. It collects
-  nothing: the fields are read-only, there is no `<form>` and no submit, and
-  Sign On is a link to the bank's own sign-in. A note on the card says so.
-  A test enforces every part of that.
+- The source's sign-on card is captured **verbatim** — its own form, Username and
+  Password fields, Show toggle, Save username, Sign On submit, Enroll, passkey and
+  help links, hidden fields and tooltip, character for character. It is a fixed
+  height panel positioned over the hero by the page's stylesheet, so any
+  substitute for it laid out differently from the source card. It is made inert at
+  render time instead: the renderer blocks the card's submit and opens Sign On at
+  the bank's own sign-in page, and writes a note into the card saying it is an
+  offline copy. Nothing typed is sent or stored. A test compares the captured
+  card with the source markup byte for byte, and checks the renderer's wiring.
 - The page keeps its own sections (the checking marquee, product directory,
   promo tiles, rate panel, Fargo panel, community cards, contact bar), its real
   photography, its real links, and its own stylesheet: the capture loads

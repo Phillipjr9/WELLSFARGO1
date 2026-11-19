@@ -299,12 +299,11 @@ test("a re-captured page keeps its real source and title", () => {
   }
 });
 
-test("the homepage is the captured source page, with a login card that collects nothing", () => {
+test("the homepage is the captured source page, with the source's sign-on card", () => {
   const page = catalog["/home"];
   assert.ok(page, "the homepage must be captured like every other public page");
   assert.equal(page.source, "https://www.wellsfargo.com/");
   assert.ok(page.styles.length > 0, "the homepage must load its stylesheet");
-  // The capture keeps the source's sections…
   const text = page.html.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ");
   for (const phrase of [
     "Checking that fits perfectly",
@@ -314,32 +313,25 @@ test("the homepage is the captured source page, with a login card that collects 
   ]) {
     assert.ok(text.includes(phrase), `homepage must keep "${phrase}"`);
   }
-  // …and the source's sign-on card: both fields, its labels, its actions. The
-  // card is part of the page, so removing it makes the page look nothing like
-  // the source. It must, however, collect nothing.
-  assert.match(page.html, /id="userid"/, "the source's Username field must be present");
-  assert.match(page.html, /id="password"/, "the source's Password field must be present");
-  assert.match(text, /Username/, "the Username label must be present");
-  assert.match(text, /Password/, "the Password label must be present");
-  assert.match(text, /Save username/, "the Save username option must be present");
-  assert.match(text, /Sign On/, "the Sign On action must be present");
-  assert.match(text, /Enroll/, "the Enroll link must be present");
-  assert.match(text, /passkey/, "the passkey link must be present");
-  // No sign-on form, no credential names, no submission anywhere in the capture.
-  // (The rates dropdown and the location search are ordinary forms and stay.)
-  const signon = page.html.slice(page.html.indexOf("signon-container"), page.html.indexOf("marquee-container"));
-  assert.ok(!/<form\b/i.test(signon), "the sign-on card must not contain a form element");
-  assert.ok(!/type="submit"/i.test(signon), "the sign-on card must not submit");
-  assert.ok(!/j_username|j_password/i.test(page.html), "no credential field names may be captured");
-  for (const input of signon.matchAll(/<input\b[^>]*>/g)) {
-    assert.ok(/\sreadonly\b|\sdisabled\b/.test(input[0]), `the sign-on inputs must be non-interactive: ${input[0]}`);
+
+  // The sign-on card is captured verbatim: substituting anything for it made it
+  // lay out differently from the source card, which is what the reader sees.
+  const card = page.html.slice(page.html.indexOf('class="signon-container"'), page.html.indexOf('class="marquee-container"'));
+  const raw = readFileSync("sources/raw/home.html", "utf8");
+  const rawCard = raw.slice(raw.indexOf('class="signon-container"'), raw.indexOf('class="marquee-container"'));
+  assert.equal(card, rawCard, "the sign-on card must be the source's own markup, character for character");
+  for (const marker of ['id="userid"', 'id="password"', 'id="saveusername"', 'id="btnSignon"', 'class="enroll"', "c29content-tooltip", "hdnuserid", "passkey", "Forgot username or password", "Security Center"]) {
+    assert.ok(card.includes(marker), `the source card must keep ${marker}`);
   }
-  // And the card tells the reader it is an offline copy, with a way to sign in.
-  assert.match(text, /Nothing you type here is sent or stored/, "the card must disclose that it collects nothing");
-  assert.match(text, /sign on at the official site/, "the card must point at the real sign-in");
-  assert.ok(/connect\.secure\.wellsfargo\.com/.test(page.html), "sign-on hands off to the official site");
-  // Sign On must be a link to the bank, never a posting form.
-  assert.match(page.html, /<a class="ps-btn-primary" href="https:\/\/connect\.secure\.wellsfargo\.com\//, "Sign On must link to the official sign-in");
+
+  // It is inert at render time, not by rewriting the page: the renderer opens
+  // Sign On at the bank and blocks the card's submit, and says so in the card.
+  const renderer = readFileSync("src/public/PublicPage.tsx", "utf8");
+  assert.match(renderer, /function wireSignon\(/, "the renderer must neutralise the sign-on card");
+  assert.match(renderer, /wireSignon\(root,/, "the renderer must wire the sign-on card");
+  assert.match(renderer, /data-wf-signon-note/, "the card must carry an offline-copy note");
+  assert.match(renderer, /const onSubmit = \(event: Event\) => \{[\s\S]{0,200}event\.preventDefault\(\)/, "the card's submit must be blocked");
+  assert.match(renderer, /connect\.secure\.wellsfargo\.com\/auth\/login\/present/, "Sign On must open the bank's own sign-in");
 });
 
 test("the homepage renders from the capture and keeps its real images", () => {

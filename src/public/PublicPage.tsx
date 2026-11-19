@@ -374,6 +374,53 @@ function wireLegacyAccordions(root: ShadowRoot) {
   return () => root.removeEventListener("click", onClick);
 }
 
+/**
+ * The homepage's sign-on card is captured exactly as the source page has it, so
+ * it lays out the way the source card does. This is a copy of the site, not the
+ * bank, so the card must collect nothing: this marks the card, writes a note
+ * into it once its stylesheet has positioned it, and opens Sign On at the bank's
+ * own sign-in page instead of posting the card's form. The fields stay usable so
+ * the card behaves and looks like the source; nothing is sent, stored or read.
+ */
+function wireSignon(root: ShadowRoot, officialSignOn: string) {
+  const card = root.querySelector<HTMLElement>(".signon-container");
+  if (!card) return () => {};
+  card.setAttribute("data-wf-offline-signon", "");
+  const form = card.querySelector<HTMLFormElement>("form#frmSignon, form[name='signon']");
+
+  // A note inside the card, in the card's own type, saying what this is. Placed
+  // in the card's body so the card's own CSS gives it its padding and width.
+  let note = card.querySelector<HTMLElement>("[data-wf-signon-note]");
+  if (!note) {
+    note = document.createElement("p");
+    note.setAttribute("data-wf-signon-note", "");
+    note.id = "signon-note";
+    note.style.cssText = "margin:8px 0 0;font-size:11px;line-height:1.35;color:#787070;";
+    note.innerHTML =
+      'Offline copy of wellsfargo.com. Nothing you type here is sent or stored. ' +
+      `<a href="${officialSignOn}" target="_blank" rel="noreferrer">Sign on at the official site</a>.`;
+    (form || card).appendChild(note);
+  }
+  for (const field of card.querySelectorAll<HTMLInputElement>("input:not([type='hidden'])")) {
+    field.setAttribute("aria-describedby", "signon-note");
+  }
+
+  const onSubmit = (event: Event) => {
+    // Never post a card on a copy of the page: send the reader to the bank.
+    event.preventDefault();
+    event.stopPropagation();
+    window.open(officialSignOn, "_blank", "noopener,noreferrer");
+  };
+  form?.addEventListener("submit", onSubmit);
+
+  // The card is absolutely positioned by the source stylesheet once it loads,
+  // so a note appended before that would change nothing on screen; nothing to
+  // measure. Return a teardown that leaves the captured markup untouched.
+  return () => {
+    form?.removeEventListener("submit", onSubmit);
+  };
+}
+
 /** Tooltips the source closes with a small `a.tooltip-close-icon` control. */
 function wireTooltips(root: ShadowRoot) {
   const onClick = (event: Event) => {
@@ -690,6 +737,7 @@ export default function PublicPage({ onLeave }: { onLeave: (url: string) => void
       wireFeedback(root),
       wireCollapsibles(root),
       wireCarousels(root),
+      wireSignon(root, "https://connect.secure.wellsfargo.com/auth/login/present?origin=cob&LOB=CONS"),
     ];
     if (normalized === "/search") {
       unwires.push(wireSearchFilters(root, (visible, total) => {
