@@ -59,20 +59,39 @@ if (signonStart >= 0) {
     console.error("Could not find the end of the sign-on block.");
     process.exit(1);
   }
-  // Keep the source's own signon / sign-top / signon-bottom structure and
-  // classes so the page's stylesheet positions the card, and put the hand-off
-  // where the source put its Sign On button inside .form-button.
+  // The source card is a real username/password login. The preview reproduces
+  // the card exactly -- same classes, labels, Show toggle, Save username, Enroll,
+  // passkey and help links -- but nothing is collected: the fields are read-only,
+  // there is no <form>, the Sign On action goes to the bank's own sign-in page,
+  // and a note under the card says so. Nothing typed here is sent or stored.
+  const officialSignOn =
+    "https://connect.secure.wellsfargo.com/auth/login/present?origin=cob&amp;LOB=CONS";
   body = body.slice(0, signonStart) + [
     '<div class="signon-container">',
     '<div class="sign-top">',
-    "<h2>Welcome</h2>",
+    '<h2 id="sign-on-header">Welcome</h2>',
     "<span>Sign on to manage your accounts.</span>",
     '<div class="form-field">',
-    '<a class="ps-btn-primary" href="https://connect.secure.wellsfargo.com/auth/login/present?origin=cob&amp;LOB=CONS" target="_blank" rel="noreferrer">Sign On</a>',
+    '<input type="text" id="userid" class="form-element formElementText login_field signon-in" readonly aria-describedby="signon-note" autocomplete="off">',
+    '<label for="userid" id="userid_label" class="id_label">Username</label>',
+    "</div>",
+    '<div class="form-field mr-tp-10 password-div">',
+    '<input type="password" id="password" class="form-element formElementPassword login_field signon-in pmask" readonly aria-describedby="signon-note" autocomplete="off">',
+    '<label for="password" id="password_label" class="id_label">Password</label>',
+    '<span class="show-password password-visible-icon">Show</span>',
+    "</div>",
+    '<div id="saveuid" class="save-username save-us-mb">',
+    '<input type="checkbox" id="saveusername" class="c29link" disabled aria-describedby="signon-note">',
+    '<label for="saveusername" class="lsc saveuser-pd">Save username</label>',
     "</div>",
     '<div class="form-button">',
+    `<a class="ps-btn-primary" href="${officialSignOn}" target="_blank" rel="noreferrer">Sign On</a>`,
     '<a class="enroll" href="https://oam.wellsfargo.com/oamo/identity/authentication?execution=e1s1/" target="_blank" rel="noreferrer">Enroll</a>',
     "</div>",
+    '<p id="signon-note" style="font-size:12px;line-height:1.35;margin:10px 16px 0;color:#787070;">',
+    "Offline copy of wellsfargo.com. Nothing you type here is sent or stored &mdash; ",
+    `<a href="${officialSignOn}" target="_blank" rel="noreferrer">sign on at the official site</a>.`,
+    "</p>",
     "</div>",
     '<div class="signon-bottom">',
     '<a href="https://connect.secure.wellsfargo.com/auth/login/present?passkey=Y" target="_blank" rel="noreferrer">Sign on with a passkey</a>',

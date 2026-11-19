@@ -299,7 +299,7 @@ test("a re-captured page keeps its real source and title", () => {
   }
 });
 
-test("the homepage is the captured source page, without a credential form", () => {
+test("the homepage is the captured source page, with a login card that collects nothing", () => {
   const page = catalog["/home"];
   assert.ok(page, "the homepage must be captured like every other public page");
   assert.equal(page.source, "https://www.wellsfargo.com/");
@@ -314,10 +314,32 @@ test("the homepage is the captured source page, without a credential form", () =
   ]) {
     assert.ok(text.includes(phrase), `homepage must keep "${phrase}"`);
   }
-  // …but never a password field: signing on is the bank's own form.
-  assert.ok(!/type="password"/i.test(page.html), "no password field may be captured");
-  assert.ok(!/j_username|j_password/.test(page.html), "no credential field names may be captured");
-  assert.ok(/public-secure-action|connect\.secure\.wellsfargo\.com/.test(page.html), "sign-on hands off to the official site");
+  // …and the source's sign-on card: both fields, its labels, its actions. The
+  // card is part of the page, so removing it makes the page look nothing like
+  // the source. It must, however, collect nothing.
+  assert.match(page.html, /id="userid"/, "the source's Username field must be present");
+  assert.match(page.html, /id="password"/, "the source's Password field must be present");
+  assert.match(text, /Username/, "the Username label must be present");
+  assert.match(text, /Password/, "the Password label must be present");
+  assert.match(text, /Save username/, "the Save username option must be present");
+  assert.match(text, /Sign On/, "the Sign On action must be present");
+  assert.match(text, /Enroll/, "the Enroll link must be present");
+  assert.match(text, /passkey/, "the passkey link must be present");
+  // No sign-on form, no credential names, no submission anywhere in the capture.
+  // (The rates dropdown and the location search are ordinary forms and stay.)
+  const signon = page.html.slice(page.html.indexOf("signon-container"), page.html.indexOf("marquee-container"));
+  assert.ok(!/<form\b/i.test(signon), "the sign-on card must not contain a form element");
+  assert.ok(!/type="submit"/i.test(signon), "the sign-on card must not submit");
+  assert.ok(!/j_username|j_password/i.test(page.html), "no credential field names may be captured");
+  for (const input of signon.matchAll(/<input\b[^>]*>/g)) {
+    assert.ok(/\sreadonly\b|\sdisabled\b/.test(input[0]), `the sign-on inputs must be non-interactive: ${input[0]}`);
+  }
+  // And the card tells the reader it is an offline copy, with a way to sign in.
+  assert.match(text, /Nothing you type here is sent or stored/, "the card must disclose that it collects nothing");
+  assert.match(text, /sign on at the official site/, "the card must point at the real sign-in");
+  assert.ok(/connect\.secure\.wellsfargo\.com/.test(page.html), "sign-on hands off to the official site");
+  // Sign On must be a link to the bank, never a posting form.
+  assert.match(page.html, /<a class="ps-btn-primary" href="https:\/\/connect\.secure\.wellsfargo\.com\//, "Sign On must link to the official sign-in");
 });
 
 test("the homepage renders from the capture and keeps its real images", () => {

@@ -57,7 +57,7 @@ Controls the source markup left to Wells Fargo's own JavaScript also work: footn
 
 ### The homepage
 
-`/` and `/home` render the capture of `https://www.wellsfargo.com/` from `sources/home.json`. `sources/raw/home.html` is the page as published and `node scripts/capture-home.mjs` rebuilds the record from it. The page keeps its own markup, classes and stylesheet (`ps-homepage…css`, stored in `src/public/source-styles.ts` and packed into the build), so it lays out the way the source page does. The source's sign-on form is replaced by a hand-off card that keeps the source's `signon-container` / `sign-top` / `signon-bottom` / `form-button` structure, so the card is positioned by the page's own CSS; the page never asks for a password.
+`/` and `/home` render the capture of `https://www.wellsfargo.com/` from `sources/home.json`. `sources/raw/home.html` is the page as published and `node scripts/capture-home.mjs` rebuilds the record from it. The page keeps its own markup, classes and stylesheet (`ps-homepage…css`, stored in `src/public/source-styles.ts` and packed into the build), so it lays out the way the source page does. The source's sign-on card is reproduced in full (Username, Password, Show, Save username, Sign On, Enroll, passkey, help links) using the source's `signon-container` / `sign-top` / `form-button` structure so the page's own CSS positions it over the hero. It collects nothing: the inputs are read-only, there is no form or submit, Sign On links to the bank's own sign-in, and the card says so.
 
 ### Re-captured pages
 

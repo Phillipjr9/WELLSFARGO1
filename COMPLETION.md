@@ -33,9 +33,12 @@ shape as every other route:
   `node scripts/capture-home.mjs` rebuilds it.
 - `/` and `/home` both render the capture (the server maps the two, the router
   prefers the capture and falls back to the React page only if it is missing).
-- The source's sign-on form posts credentials to the bank, so it is replaced by
-  the preview's hand-off panel; the page never asks for a password and no
-  credential field survives the capture. A test enforces this.
+- The source's sign-on card is reproduced in full — the Username and Password
+  fields, the Show toggle, Save username, Sign On, Enroll, the passkey and help
+  links — because it is a large, load-bearing part of the page. It collects
+  nothing: the fields are read-only, there is no `<form>` and no submit, and
+  Sign On is a link to the bank's own sign-in. A note on the card says so.
+  A test enforces every part of that.
 - The page keeps its own sections (the checking marquee, product directory,
   promo tiles, rate panel, Fargo panel, community cards, contact bar), its real
   photography, its real links, and its own stylesheet: the capture loads
