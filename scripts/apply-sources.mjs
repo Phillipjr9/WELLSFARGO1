@@ -36,22 +36,32 @@ if (!existsSync(DIRECTORY)) {
 let applied = 0;
 for (const name of readdirSync(DIRECTORY).filter((file) => file.endsWith(".json")).sort()) {
   const record = JSON.parse(readFileSync(join(DIRECTORY, name), "utf8"));
-  const page = catalog[record.route];
-  if (!page) {
-    console.warn(`${name}: ${record.route} is not a captured route, skipped`);
+  if (!record.route || !/^\//.test(record.route)) {
+    console.warn(`${name}: no route on record, skipped`);
     continue;
   }
+  // A page may have been captured without ever being in the catalog (the
+  // homepage), so a missing entry is created rather than skipped.
+  const page = catalog[record.route];
   if (!record.html || !/<h1|<h2/i.test(record.html)) {
     console.warn(`${name}: no page content, skipped`);
     continue;
   }
-  const title = TITLES[record.route] || record.title || page.title;
+  const title = TITLES[record.route] || record.title || page?.title || "Wells Fargo";
+  // A capture that already carries its own <main> keeps its markup as-is; the
+  // homepage does, the re-captured product pages do not.
+  const ownMarkup = /<main[\s>]/i.test(record.html)
+    ? record.html.replace(/<main\b(?![^>]*\bid=)/i, '<main id="main-content"')
+    : null;
+  const html = ownMarkup
+    ? `<html><head><title>${title}</title></head><body>${ownMarkup}</body></html>`
+    : `<html><head><title>${title}</title></head><body><main id="main-content" class="ps-body-wrapper">${record.html}</main></body></html>`;
   catalog[record.route] = {
     ...page,
     source: record.source,
     title,
-    html: `<html><head><title>${title}</title></head><body><main id="main-content" class="ps-body-wrapper">${record.html}</main></body></html>`,
-    styles: [],
+    html,
+    styles: record.styles || [],
     status: 200,
     recaptured: record.capturedAt,
   };

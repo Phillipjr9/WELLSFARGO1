@@ -1,0 +1,249 @@
+/*
+ * Homepage styles for /home, transcribed from the source page
+ * https://www.wellsfargo.com/ each class rule uses the source page's own
+ * class names and values.
+ *
+ * The source stylesheet
+ *   https://www.wellsfargo.com/ui/css/homepage-ui/ps-homepage.64b2d73bd40b05eb2d51.css
+ * cannot be downloaded from this environment (wellsfargo.com is not reachable
+ * over plain HTTP here). Drop that file's contents in place of this notice and
+ * `node scripts/capture-home.mjs` will read it as the page's stylesheet instead;
+ * these rules cover the components the captured <main> uses.
+ */
+
+.ps-body-wrapper {
+  margin: 0 auto;
+  max-width: 1400px;
+  padding: 0 clamp(12px, 2vw, 24px);
+}
+
+.ps-body-wrapper .hidden,
+.ps-body-wrapper .visuallyHidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Sign on */
+.signon-container {
+  border: 1px solid #e2dedb;
+  border-radius: 8px;
+  margin: 24px 0 32px;
+  padding: 24px;
+  max-width: 420px;
+}
+.signon-container .sign-top h2 {
+  font-size: 26px;
+  font-weight: 400;
+  margin: 0 0 6px;
+}
+.signon-container .sign-top > span {
+  display: block;
+  color: #5a524e;
+  margin-bottom: 18px;
+}
+.signon-bottom {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 18px;
+  font-size: 15px;
+}
+.signon-bottom a {
+  color: #141414;
+  text-decoration: underline;
+}
+.public-secure-action a {
+  display: inline-block;
+  background: #d71e28;
+  color: #fff;
+  border-radius: 4px;
+  padding: 12px 22px;
+  font-weight: 600;
+  text-decoration: none;
+}
+.public-secure-action a:hover { background: #b3161f; }
+
+/* Primary marquee */
+.marquee-container { margin: 0 0 32px; }
+.marquee-wrap {
+  display: flex;
+  flex-direction: column;
+  border-radius: 10px;
+  overflow: hidden;
+  background: #141414;
+  color: #fff;
+}
+.marquee-img img { display: block; width: 100%; height: auto; }
+.marquee-content { padding: 24px 28px 28px; }
+.marquee-content h2 {
+  font-size: clamp(24px, 2.4vw, 34px);
+  font-weight: 300;
+  margin: 0 0 10px;
+}
+.marquee-content p { margin: 0 0 18px; max-width: 60ch; }
+@media (min-width: 900px) {
+  .marquee-wrap { flex-direction: row; align-items: stretch; }
+  .marquee-img { flex: 1 1 58%; }
+  .marquee-img img { height: 100%; object-fit: cover; }
+  .marquee-content { flex: 1 1 42%; align-self: center; }
+}
+
+/* Product directory */
+.alt-nav-container { margin: 0 0 40px; }
+.alt-nav-links {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 8px;
+}
+.alt-nav-links li { margin: 0; }
+.alt-nav-link {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 20px 12px;
+  border: 1px solid #e2dedb;
+  border-radius: 8px;
+  color: #141414;
+  font-weight: 500;
+  text-align: center;
+  text-decoration: none;
+  min-height: 100%;
+}
+.alt-nav-link:hover,
+.alt-nav-link:focus-visible { border-color: #d71e28; color: #d71e28; text-decoration: none; }
+.alt-nav-link > span[class^="alt-personal-"] {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #f4f1ef;
+  display: block;
+}
+
+/* Small promo tiles */
+.ps-marketing-small-promo-items {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 16px;
+  margin: 0 0 40px;
+}
+.ps-marketing-small-promo-item > div,
+.ps-marketing-small-promo-item .mark-small-promo-icon {
+  height: 100%;
+  border: 1px solid #e2dedb;
+  border-radius: 8px;
+  padding: 22px;
+}
+.ps-marketing-small-promo-item .mark-small-promo-icon { display: flex; flex-direction: column; }
+.ps-marketing-icon img { width: 40px; height: 40px; }
+.ps-marketing-text h2 {
+  font-size: 19px;
+  font-weight: 600;
+  margin: 14px 0 6px;
+}
+.ps-marketing-text-content { color: #5a524e; margin: 0 0 14px; }
+.learn-more a, .ps-marketing-promo-link a { font-weight: 600; color: #141414; }
+.learn-more-mobile { display: none; }
+
+/* Large promo */
+.ps-large-promo-full-container { margin: 0 0 40px; }
+.ps-large-promo-full {
+  border: 1px solid #e2dedb;
+  border-radius: 10px;
+  overflow: hidden;
+}
+.ps-promo-full-item { display: flex; flex-direction: column; }
+.ps-promo-full-image img { display: block; width: 100%; height: auto; }
+.ps-promo-full-content { padding: 24px 28px; }
+.ps-promo-full-content h2 {
+  font-size: clamp(22px, 2.2vw, 30px);
+  font-weight: 400;
+  margin: 0 0 10px;
+}
+@media (min-width: 900px) {
+  .ps-promo-full-item { flex-direction: row; align-items: center; }
+  .ps-promo-full-image { flex: 1 1 55%; }
+  .ps-promo-full-content { flex: 1 1 45%; }
+}
+
+/* Section titles */
+.ps-mid-page-title-wrapper { text-align: center; margin: 48px 0 24px; }
+.ps-mid-page-title-top-line { display: none; }
+.ps-mid-page-title {
+  font-size: clamp(24px, 2.4vw, 32px);
+  font-weight: 300;
+  margin: 0;
+}
+.ps-mid-page-subTitle {
+  max-width: 62ch;
+  margin: 0 auto 24px;
+  color: #5a524e;
+}
+
+/* Card grids */
+.card-container {
+  display: grid;
+  gap: 20px;
+  margin: 0 0 40px;
+}
+.card-container.three-card { grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
+.card-container.two-card { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+.card-container img { display: block; width: 100%; height: auto; border-radius: 8px; }
+.card-container h3 { font-size: 20px; font-weight: 600; margin: 16px 0 8px; }
+.subheadline-regular { color: #5a524e; margin-bottom: 14px; }
+
+/* Fargo / mobile app block */
+.ps-native-app-container { background: #f4f1ef; border-radius: 10px; padding: 32px; margin: 0 0 40px; }
+.native-app-header-text { max-width: 62ch; }
+.native-app-header h2, .native-app-header-large h2 { font-size: clamp(22px, 2.2vw, 30px); font-weight: 300; margin: 0 0 10px; }
+.native-app-header p, .native-app-header-large p { color: #5a524e; }
+.native-app-carousel img { display: block; max-width: 320px; width: 100%; height: auto; margin: 20px auto; }
+.ps-download-buttons { display: flex; gap: 12px; flex-wrap: wrap; }
+.ps-download-buttons img { height: 44px; width: auto; }
+.ps-download-app-disclaimer { color: #787070; font-size: 12px; margin-top: 8px; }
+
+/* Contact bar */
+.contact-bar-container {
+  border-top: 1px solid #e2dedb;
+  padding-top: 32px;
+  margin-top: 8px;
+}
+.contact-bar-header { font-size: 24px; font-weight: 300; margin: 0 0 18px; }
+.contact-bar-links {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 16px;
+}
+.contact-bar-links li { margin: 0; }
+.contact-bar-collapsible,
+.contact-bar-appointment-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #141414;
+  font-weight: 600;
+  text-decoration: none;
+}
+.contact-bar-content-hidden { display: none; }
+.contact-bar-content { margin-top: 12px; }
+.contact-bar-content ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.contact-bar-content-hidden[aria-hidden="true"] { display: none; }
+.contact-bar-select { font-weight: 600; }
+.contact-bar-form-grp { display: flex; gap: 8px; flex-wrap: wrap; }
+.contact-bar-input-box { border: 1px solid #b9b2ad; border-radius: 4px; padding: 10px 12px; }
+.contact-bar-form-btn button { background: #141414; color: #fff; border: 0; border-radius: 4px; padding: 10px 18px; }
+.collapsible-icon::after { content: "⌄"; margin-left: 4px; }
+.is-expanded .collapsible-icon::after { content: "⌃"; }

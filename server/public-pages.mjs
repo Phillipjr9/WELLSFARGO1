@@ -274,6 +274,8 @@ async function capturedPage(path, searchQuery) {
     return catalog[`/credit-cards${route}`] ? `/credit-cards${route}` : null;
   };
   if (catalog[path]) return { ...catalog[path], cached: true };
+  // The homepage is captured once and served for both `/` and `/home`.
+  if (path === "/" && catalog["/home"]) return { ...catalog["/home"], cached: true };
   let index = {};
   try {
     index = JSON.parse(readFileSync(join(process.cwd(), "src", "public", "link-index.json"), "utf8"));

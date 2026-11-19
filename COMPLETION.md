@@ -8,18 +8,41 @@ _Last audited: 2026-11-19._
 
 | Measure | Count |
 | --- | --- |
-| Public pages captured from wellsfargo.com and its product sites | 570 |
+| Public pages captured from wellsfargo.com and its product sites | 571 |
 | Destinations referenced by those pages but not captured | 666 |
 | — handed to an equivalent captured page | 13 |
 | — listed in their section's "More in this section" block | 575 |
 | — handed to the official page (resource centres, forms, es/ pages) | 78 |
-| Real images (all from Wells Fargo media hosts, none generated) | 3,841 |
+| Real images (all from Wells Fargo media hosts, none generated) | 3,855 |
 | Document links (PDF, spreadsheets, CSV) | 1,008 |
 | Internal links with no destination | 0 |
 
 Every link resolves to one of: a captured page, an equivalent captured page, the page's section list (with the destination's real `wellsfargo.com` URL), the official page in a new tab, or a named document on the official site.
 
 ## Finished in this round
+
+### The homepage
+
+The homepage was the one public page never captured: `/` and `/home` rendered a
+hand-written React composition, so the preview showed an interpretation rather
+than the source page. It is now captured from the source markup, in the same
+shape as every other route:
+
+- `sources/raw/home.html` is the page as published; `sources/home.json` is its
+  `<main>` region, title, source URL and stylesheet reference.
+  `node scripts/capture-home.mjs` rebuilds it.
+- `/` and `/home` both render the capture (the server maps the two, the router
+  prefers the capture and falls back to the React page only if it is missing).
+- The source's sign-on form posts credentials to the bank, so it is replaced by
+  the preview's hand-off panel; the page never asks for a password and no
+  credential field survives the capture. A test enforces this.
+- The page keeps its own sections (the checking marquee, product directory,
+  promo tiles, rate panel, Fargo panel, community cards, contact bar), its real
+  photography and its real links. `src/public/home-styles.css` carries the page
+  styles: the source stylesheet is listed on record but wellsfargo.com cannot be
+  downloaded over plain HTTP from this environment, so its rules are written out
+  by hand in that file. Replacing it with the source file verbatim is a drop-in
+  change.
 
 ### Pages that showed the wrong thing
 
@@ -58,11 +81,12 @@ node scripts/apply-sources.mjs                   # merge into the catalog
 
 ### Tests
 
-`npm test`: **23** ledger/API tests and **11** link-and-content tests, all passing. New this round:
+`npm test`: **25** ledger/API tests and **13** link-and-content tests, all passing. New this round:
 
 - every captured page has one main landmark and one first-level heading, and the heading sits inside the landmark;
 - no captured page holds an error banner or has no text at all (the "Offer unavailable" class of bug);
-- every re-captured page in `sources/` is still a captured route, keeps an `https://www.wellsfargo.com/` source, has a real title, and is the content the catalog serves.
+- every re-captured page in `sources/` is still a captured route, keeps an `https://www.wellsfargo.com/` source, has a real title, and is the content the catalog serves;
+- the homepage is the captured source page: its own sections and photography, its stylesheet, and no credential form anywhere in it.
 
 ## Known limits
 

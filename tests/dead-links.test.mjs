@@ -288,6 +288,45 @@ test("a re-captured page keeps its real source and title", () => {
     assert.match(record.source, /^https:\/\/www\.wellsfargo\.com\//, `${name}: source must be the official page`);
     assert.match(record.html, /<h1|<h2/i, `${name}: holds page content`);
     assert.ok(!/Technical difficulties/i.test(page.title), `${record.route}: title must describe the page`);
-    assert.ok(page.html.includes(record.html.slice(0, 120)), `${record.route}: capture must carry the re-captured content`);
+    // The catalog stores the captured region, wrapped in <main> when the capture
+    // has none and given the app's landmark id when it does, so compare on the
+    // first line of text the page carries.
+    const sample = record.html.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim().slice(0, 60);
+    assert.ok(
+      page.html.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").includes(sample),
+      `${record.route}: capture must carry the re-captured content`,
+    );
   }
+});
+
+test("the homepage is the captured source page, without a credential form", () => {
+  const page = catalog["/home"];
+  assert.ok(page, "the homepage must be captured like every other public page");
+  assert.equal(page.source, "https://www.wellsfargo.com/");
+  assert.ok(page.styles.length > 0, "the homepage must load its stylesheet");
+  // The capture keeps the source's sections…
+  const text = page.html.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ");
+  for (const phrase of [
+    "Checking that fits perfectly",
+    "Financial guidance and support",
+    "Serving our customers and communities",
+    "How can we help?",
+  ]) {
+    assert.ok(text.includes(phrase), `homepage must keep "${phrase}"`);
+  }
+  // …but never a password field: signing on is the bank's own form.
+  assert.ok(!/type="password"/i.test(page.html), "no password field may be captured");
+  assert.ok(!/j_username|j_password/.test(page.html), "no credential field names may be captured");
+  assert.ok(/public-secure-action|connect\.secure\.wellsfargo\.com/.test(page.html), "sign-on hands off to the official site");
+});
+
+test("the homepage renders from the capture and keeps its real images", () => {
+  const page = catalog["/home"];
+  const images = [...page.html.matchAll(/<img\b[^>]*\ssrc="([^"]+)"/g)].map((match) => match[1]);
+  assert.ok(images.length >= 10, "the homepage keeps its photography");
+  for (const src of images) {
+    assert.match(src, /^https:\/\/[a-z0-9.-]*wellsfargo[a-z0-9.-]*\//i, `homepage image must be a real source: ${src}`);
+  }
+  const app = readFileSync("src/App.tsx", "utf8");
+  assert.match(app, /hasCapturedPage\("\/home"\)/, "the router must serve the captured homepage");
 });

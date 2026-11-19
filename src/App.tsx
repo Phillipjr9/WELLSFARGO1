@@ -24,8 +24,13 @@ function AppRoutes({ onLeave }: { onLeave: (url: string) => void }) {
   if (/^\/portal(?:\/|$)/.test(normalizedPortalPath(p))) {
     return <BankingWorkspace onLeave={onLeave} />;
   }
-  // The homepage composes the same sections as the captured public home page.
-  if (p === "/" || p === "/home") return <HomePage onLeave={onLeave} />;
+  // The homepage is served from the capture of www.wellsfargo.com, like every
+  // other public page. `/` and `/home` are the same page.
+  if (p === "/" || p === "/home") {
+    return hasCapturedPage("/home")
+      ? <PublicPage key="/home" onLeave={onLeave} />
+      : <HomePage onLeave={onLeave} />;
+  }
   // Demo sign-on stays local (no credentials are collected).
   if (p === "/sign-on" || p === "/login") return <DemoAccess />;
   // Live search needs the demo server; a static deployment searches the saved

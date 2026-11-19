@@ -36,9 +36,11 @@ const emptied = [];
 // Captures whose page body sits in a plain container with no landmark at all.
 // The container is marked so the renderer can promote exactly that element and
 // the title heading goes inside it.
+// The pattern also matches a container this script already marked, so the
+// script can run again without losing its own work.
 const CONTAINERS = {
-  "/locator/wellsfargoadvisors": /<div class="Locator">/,
-  "/redeem": /<div id="skipLinkTarget"[^>]*>/,
+  "/locator/wellsfargoadvisors": /<div\b(?=[^>]*class="Locator")[^>]*>/,
+  "/redeem": /<div\b(?=[^>]*id="skipLinkTarget")[^>]*>/,
 };
 
 const identified = [];
@@ -62,8 +64,10 @@ for (const [route, page] of Object.entries(catalog)) {
   if (!main && CONTAINERS[route]) {
     const container = CONTAINERS[route].exec(html);
     if (container) {
-      const marked = container[0].replace(/^<div\b/i, '<div data-wf-main="true"');
-      html = html.replace(container[0], marked);
+      const marked = container[0].includes("data-wf-main")
+        ? container[0]
+        : container[0].replace(/^<div\b/i, '<div data-wf-main="true"');
+      if (marked !== container[0]) html = html.replace(container[0], marked);
       main = [marked];
       mainKind = "container";
     }

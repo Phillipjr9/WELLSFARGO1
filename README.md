@@ -55,6 +55,10 @@ A link always resolves to something real:
 
 Controls the source markup left to Wells Fargo's own JavaScript also work: footnote references (numbered, symbolic and `data-footnote-id` disclosures), FAQ accordions, legacy `#Expand` accordions, balloon-help definitions, the share pop-up, print, feedback, the contact bar and the rate/image carousels.
 
+### The homepage
+
+`/` and `/home` render the capture of `https://www.wellsfargo.com/` from `sources/home.json`. `sources/raw/home.html` is the page as published and `node scripts/capture-home.mjs` rebuilds the record from it. The source's sign-on form is replaced by the preview's hand-off panel, so the page never asks for a password; everything else — sections, photography, links — is the page itself. Its styles live in `src/public/home-styles.css`.
+
 ### Re-captured pages
 
 Eleven product pages were originally captured from `creditcards.wellsfargo.com`, which answers "Offer unavailable" for paths that `www.wellsfargo.com` publishes (card features, account documents, card terms). Those pages are now captured from the correct host:
