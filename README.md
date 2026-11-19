@@ -57,7 +57,7 @@ Controls the source markup left to Wells Fargo's own JavaScript also work: footn
 
 ### The homepage
 
-`/` and `/home` render the capture of `https://www.wellsfargo.com/` from `sources/home.json`. `sources/raw/home.html` is the page as published and `node scripts/capture-home.mjs` rebuilds the record from it. The page keeps its own markup, classes and stylesheet (`ps-homepage…css`, stored in `src/public/source-styles.ts` and packed into the build), so it lays out the way the source page does. The source's sign-on card is captured verbatim, form and all, because it is a fixed-height panel that the page's own CSS positions over the hero — any substitute laid out differently. It collects nothing: `wireSignon` in `src/public/PublicPage.tsx` blocks the card's submit, opens Sign On at the bank's own sign-in page, and writes a note into the card saying it is an offline copy. Nothing typed is sent or stored.
+`/` and `/home` render the homepage capture from `sources/home.json`. Its first screen matches the current page: the “Good morning” sign-on card and the `$325 checking bonus` hero, beneath the preview's red masthead and two navigation rows. The page keeps its source markup and stylesheet (`ps-homepage…css`, stored in `src/public/source-styles.ts` and packed into the build); the responsive hero artwork is bundled locally. `node scripts/capture-home.mjs` rebuilds the capture from `sources/raw/home.html`. The sign-on card is kept verbatim and positioned by the source CSS. It collects nothing: `wireSignon` blocks form submission and opens the bank's official sign-in; an offline-copy notice is available to assistive technology and appears visually when the card receives focus. Nothing typed is sent or stored.
 
 ### Re-captured pages
 

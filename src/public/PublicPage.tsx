@@ -6,6 +6,9 @@ import { styleData } from "./style-data";
 import linkIndexData from "./link-index.json";
 import { useRouter } from "../router/RouterContext";
 import { resolveHref, sourceUrlFor } from "./links";
+import checkingDesktop from "../assets/checking-desktop.jpg";
+import checkingTablet from "../assets/checking-tablet.jpg";
+import checkingMobile from "../assets/checking-mobile.jpg";
 
 export type PublicPageRecord = {
   source: string;
@@ -375,12 +378,8 @@ function wireLegacyAccordions(root: ShadowRoot) {
 }
 
 /**
- * The homepage's sign-on card is captured exactly as the source page has it, so
- * it lays out the way the source card does. This is a copy of the site, not the
- * bank, so the card must collect nothing: this marks the card, writes a note
- * into it once its stylesheet has positioned it, and opens Sign On at the bank's
- * own sign-in page instead of posting the card's form. The fields stay usable so
- * the card behaves and looks like the source; nothing is sent, stored or read.
+ * The source sign-on card stays intact visually, but its form is only a safe
+ * hand-off: inputs never leave the page and submission opens the official sign-in.
  */
 function wireSignon(root: ShadowRoot, officialSignOn: string) {
   const card = root.querySelector<HTMLElement>(".signon-container");
@@ -388,14 +387,15 @@ function wireSignon(root: ShadowRoot, officialSignOn: string) {
   card.setAttribute("data-wf-offline-signon", "");
   const form = card.querySelector<HTMLFormElement>("form#frmSignon, form[name='signon']");
 
-  // A note inside the card, in the card's own type, saying what this is. Placed
-  // in the card's body so the card's own CSS gives it its padding and width.
+  // Keep the explanation in the accessibility tree without changing the source
+  // card at rest. Reveal it visually as soon as someone focuses the form, before
+  // they can type credentials into this offline copy.
   let note = card.querySelector<HTMLElement>("[data-wf-signon-note]");
   if (!note) {
     note = document.createElement("p");
     note.setAttribute("data-wf-signon-note", "");
     note.id = "signon-note";
-    note.style.cssText = "margin:8px 0 0;font-size:11px;line-height:1.35;color:#787070;";
+    note.className = "wf-signon-note";
     note.innerHTML =
       'Offline copy of wellsfargo.com. Nothing you type here is sent or stored. ' +
       `<a href="${officialSignOn}" target="_blank" rel="noreferrer">Sign on at the official site</a>.`;
@@ -404,6 +404,8 @@ function wireSignon(root: ShadowRoot, officialSignOn: string) {
   for (const field of card.querySelectorAll<HTMLInputElement>("input:not([type='hidden'])")) {
     field.setAttribute("aria-describedby", "signon-note");
   }
+  const onFocusIn = () => note?.classList.add("is-visible");
+  card.addEventListener("focusin", onFocusIn);
 
   const onSubmit = (event: Event) => {
     // Never post a card on a copy of the page: send the reader to the bank.
@@ -413,10 +415,8 @@ function wireSignon(root: ShadowRoot, officialSignOn: string) {
   };
   form?.addEventListener("submit", onSubmit);
 
-  // The card is absolutely positioned by the source stylesheet once it loads,
-  // so a note appended before that would change nothing on screen; nothing to
-  // measure. Return a teardown that leaves the captured markup untouched.
   return () => {
+    card.removeEventListener("focusin", onFocusIn);
     form?.removeEventListener("submit", onSubmit);
   };
 }
@@ -730,6 +730,8 @@ export default function PublicPage({ onLeave }: { onLeave: (url: string) => void
       .signon-container .sign-top{background-color:#fff;}
       .signon-container .signon-bottom{background-color:#f4f0ed;}
       .signon-container .form-field input{color:#141414;background-color:#fff;}
+      .wf-signon-note{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important;}
+      .wf-signon-note.is-visible{position:static!important;width:auto!important;height:auto!important;padding:0!important;margin:8px 0 0!important;overflow:visible!important;clip:auto!important;white-space:normal!important;border:0!important;font-size:11px!important;line-height:1.35!important;color:#787070!important;}
       /* A native submit button ignores background-color in engines that keep
          -webkit-appearance:button, which paints it white. The source's Sign On is
          a solid red pill, so drop the native appearance. */
@@ -750,6 +752,24 @@ export default function PublicPage({ onLeave }: { onLeave: (url: string) => void
     const careersHost = (() => { try { return new URL(record.source).hostname; } catch { return ""; } })();
     const externalHost = careersHost && careersHost !== "www.wellsfargo.com" ? `https://${careersHost}` : "https://www.wellsfargo.com";
     wrapper.innerHTML = record.html.replace(/(xlink:href|href)="\/images\//g, `$1="${externalHost}/images/`);
+    const isHomepage = normalized === "/" || normalized === "/home" || record.source === "https://www.wellsfargo.com/";
+    if (isHomepage) {
+      // The exact promotional artwork is already bundled with this preview.
+      // Use its responsive local copies so the hero also works offline.
+      const heroImage = wrapper.querySelector<HTMLImageElement>(".marquee-container .marquee-img img");
+      if (heroImage) {
+        heroImage.srcset = `${checkingMobile} 570w, ${checkingTablet} 768w, ${checkingDesktop} 1080w`;
+        heroImage.sizes = "(min-width: 1400px) min(1400px, 100vw), 100vw";
+        heroImage.src = checkingDesktop;
+      }
+      // The live page greets visitors by local time; keep the captured source
+      // text as a fallback and mirror that small piece of source behaviour.
+      const greeting = wrapper.querySelector<HTMLElement>("#sign-on-header");
+      if (greeting) {
+        const hour = new Date().getHours();
+        greeting.textContent = hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
+      }
+    }
     root.appendChild(wrapper);
 
     const unwires = [

@@ -33,15 +33,21 @@ shape as every other route:
   `node scripts/capture-home.mjs` rebuilds it.
 - `/` and `/home` both render the capture (the server maps the two, the router
   prefers the capture and falls back to the React page only if it is missing).
+- The first screen now follows the live homepage content shown in the reference:
+  the time-based greeting, the `$325 checking bonus on us` headline, the qualifying
+  direct-deposit copy, and the “Get started” action. The exact promotional artwork
+  is bundled in responsive desktop, tablet, and mobile assets so the hero works
+  offline as well.
 - The source's sign-on card is captured **verbatim** — its own form, Username and
   Password fields, Show toggle, Save username, Sign On submit, Enroll, passkey and
   help links, hidden fields and tooltip, character for character. It is a fixed
   height panel positioned over the hero by the page's stylesheet, so any
   substitute for it laid out differently from the source card. It is made inert at
-  render time instead: the renderer blocks the card's submit and opens Sign On at
-  the bank's own sign-in page, and writes a note into the card saying it is an
-  offline copy. Nothing typed is sent or stored. A test compares the captured
-  card with the source markup byte for byte, and checks the renderer's wiring.
+  render time: the renderer blocks the card's submit and opens Sign On at the
+  bank's own sign-in page. An offline-copy notice is available to assistive
+  technology and appears visually when the card receives focus. Nothing typed is
+  sent or stored. A test compares the captured card with the source markup byte
+  for byte and checks the renderer's wiring.
 - One gap is closed in a small compatibility layer applied after the page's own
   stylesheet: the source hides its sign-on card below 1080px because its scripts
   swap in a different mobile flow, and this preview runs no page scripts — so in a
@@ -53,7 +59,8 @@ shape as every other route:
   photography, its real links, and its own stylesheet: the capture loads
   `https://www.wellsfargo.com/ui/css/homepage-ui/ps-homepage…css` from
   `src/public/source-styles.ts`, which `build-catalog` fetched from the live page.
-  The sign-on hand-off keeps the source's `signon-container` / `sign-top` /
+  The preview's red masthead and desktop navigation sit above that captured main
+  page. The sign-on hand-off keeps the source's `signon-container` / `sign-top` /
   `form-button` structure so the page's stylesheet positions the card over the
   hero exactly as on wellsfargo.com.
 
@@ -94,12 +101,12 @@ node scripts/apply-sources.mjs                   # merge into the catalog
 
 ### Tests
 
-`npm test`: **25** ledger/API tests and **13** link-and-content tests, all passing. New this round:
+`npm test`: **26** ledger/API tests and **14** link-and-content tests, all passing. New this round:
 
 - every captured page has one main landmark and one first-level heading, and the heading sits inside the landmark;
 - no captured page holds an error banner or has no text at all (the "Offer unavailable" class of bug);
 - every re-captured page in `sources/` is still a captured route, keeps an `https://www.wellsfargo.com/` source, has a real title, and is the content the catalog serves;
-- the homepage is the captured source page: its own sections and photography, its stylesheet, and no credential form anywhere in it.
+- the homepage is the captured source page: its own sections and photography, its stylesheet, plus a sign-on form that is blocked locally and hands off to Wells Fargo without sending or storing the typed values.
 
 ## Known limits
 

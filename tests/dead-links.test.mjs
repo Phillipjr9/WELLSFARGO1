@@ -306,13 +306,18 @@ test("the homepage is the captured source page, with the source's sign-on card",
   assert.ok(page.styles.length > 0, "the homepage must load its stylesheet");
   const text = page.html.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ");
   for (const phrase of [
-    "Checking that fits perfectly",
+    "Good morning",
+    "$325 checking bonus on us",
+    "New customers open an eligible checking account with qualifying direct deposits",
+    "Get started &gt;&gt;",
     "Financial guidance and support",
     "Serving our customers and communities",
     "How can we help?",
   ]) {
     assert.ok(text.includes(phrase), `homepage must keep "${phrase}"`);
   }
+  assert.match(page.html, /4a_hppb_marquee_banner_1700x700\.jpg/, "homepage must use the current $325 campaign artwork");
+  assert.match(page.html, /accountoffers\.wellsfargo\.com\/checkingoffer\//, "the hero CTA must point to its checking offer");
 
   // The sign-on card is captured verbatim: substituting anything for it made it
   // lay out differently from the source card, which is what the reader sees.
@@ -325,11 +330,14 @@ test("the homepage is the captured source page, with the source's sign-on card",
   }
 
   // It is inert at render time, not by rewriting the page: the renderer opens
-  // Sign On at the bank and blocks the card's submit, and says so in the card.
+  // Sign On at the bank and blocks the card's submit. The safety note stays in
+  // the accessibility tree and becomes visible when the form receives focus.
   const renderer = readFileSync("src/public/PublicPage.tsx", "utf8");
   assert.match(renderer, /function wireSignon\(/, "the renderer must neutralise the sign-on card");
   assert.match(renderer, /wireSignon\(root,/, "the renderer must wire the sign-on card");
   assert.match(renderer, /data-wf-signon-note/, "the card must carry an offline-copy note");
+  assert.match(renderer, /wf-signon-note\.is-visible/, "the offline note must appear when the card is focused");
+  assert.match(renderer, /card\.addEventListener\("focusin", onFocusIn\)/, "focusing the card must reveal its safety note");
   assert.match(renderer, /const onSubmit = \(event: Event\) => \{[\s\S]{0,200}event\.preventDefault\(\)/, "the card's submit must be blocked");
   assert.match(renderer, /connect\.secure\.wellsfargo\.com\/auth\/login\/present/, "Sign On must open the bank's own sign-in");
 });
@@ -343,6 +351,11 @@ test("the homepage renders from the capture and keeps its real images", () => {
   }
   const app = readFileSync("src/App.tsx", "utf8");
   assert.match(app, /hasCapturedPage\("\/home"\)/, "the router must serve the captured homepage");
+  const renderer = readFileSync("src/public/PublicPage.tsx", "utf8");
+  assert.match(renderer, /checkingDesktop from "\.\.\/assets\/checking-desktop\.jpg"/, "the desktop hero art must be bundled locally");
+  assert.match(renderer, /checkingTablet from "\.\.\/assets\/checking-tablet\.jpg"/, "the tablet hero art must be bundled locally");
+  assert.match(renderer, /checkingMobile from "\.\.\/assets\/checking-mobile\.jpg"/, "the mobile hero art must be bundled locally");
+  assert.match(renderer, /heroImage\.srcset = `\$\{checkingMobile\} 570w, \$\{checkingTablet\} 768w, \$\{checkingDesktop\} 1080w`/, "the homepage must use responsive local hero art");
 });
 
 test("the homepage loads the source stylesheet, not a look-alike", () => {
