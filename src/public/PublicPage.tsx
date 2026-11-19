@@ -621,12 +621,16 @@ function wireCarousels(root: ShadowRoot) {
 export default function PublicPage({ onLeave }: { onLeave: (url: string) => void }) {
   const { path, query, navigate } = useRouter();
   const normalized = path.replace(/\/+$/, "") || "/";
+  // The homepage is captured once under `/home`; `/` is the same page, so use
+  // that catalog key for snapshot lookup. `normalized` stays `/` for
+  // `officialSource`, navigation, and in-page hashes.
+  const catalogKey = normalized === "/" ? "/home" : normalized;
   const queryKey = normalized === "/search" ? query.q || "" : "";
   const isSearch = normalized === "/search";
-  const hasSnapshot = !isSearch && Boolean(catalogData[normalized] || aliasFor(normalized));
+  const hasSnapshot = !isSearch && Boolean(catalogData[catalogKey] || aliasFor(catalogKey));
   const [fallback, setFallback] = useState<{ from: string; to: string } | null>(null);
   /** Renders the page that *is* captured when a link points somewhere it isn't. */
-  const servedNormalized = hasSnapshot ? normalized : (aliasFor(normalized)?.route ?? normalized);
+  const servedNormalized = hasSnapshot ? catalogKey : (aliasFor(normalized)?.route ?? normalized);
   // The note (and the highlighted section entry) only describes a destination
   // the reader has not actually been given.
   const missing = fallback && fallback.from === servedNormalized ? null : fallback;
